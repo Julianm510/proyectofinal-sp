@@ -49,6 +49,7 @@ const RemitoList = () => {
   return (
     <div className="container">
       <h2>Gestión de Remitos</h2>
+
       <RemitoForm
         agregar={async (r) => {
           await crearRemito(r);
@@ -62,6 +63,7 @@ const RemitoList = () => {
         remitoEditar={remitoEditar}
         cancelar={() => setRemitoEditar(null)}
       />
+
       <table>
         <thead>
           <tr>

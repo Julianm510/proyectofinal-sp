@@ -1,6 +1,6 @@
 // src/components/remitos/RemitoService.js
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../../FireBaseConfig";
+import { db } from "../../../FireBaseConfig";
 
 const ref = collection(db, "remitos");
 

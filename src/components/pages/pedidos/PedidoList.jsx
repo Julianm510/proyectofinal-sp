@@ -1,4 +1,3 @@
-// src/components/pedidos/PedidoList.jsx
 import { useEffect, useState } from "react";
 import {
   crearPedido,
@@ -7,10 +6,13 @@ import {
   eliminarPedido,
 } from "./PedidoService";
 import PedidoForm from "./PedidoForm";
+import RemitoForm from "../remitos/RemitoForm";
+import { crearRemito } from "../remitos/RemitoService";
 
 const PedidoList = () => {
   const [pedidos, setPedidos] = useState([]);
   const [pedidoEditar, setPedidoEditar] = useState(null);
+  const [pedidoParaRemito, setPedidoParaRemito] = useState(null);
 
   const cargarPedidos = async () => {
     const snapshot = await obtenerPedidos();
@@ -24,6 +26,23 @@ const PedidoList = () => {
   return (
     <div className="container">
       <h2>Gestión de Pedidos</h2>
+
+      {/* Formulario para generar remito desde pedido */}
+      {pedidoParaRemito && (
+        <div style={{ marginBottom: "2rem" }}>
+          <h3>Generar Remito para Pedido #{pedidoParaRemito.id}</h3>
+          <RemitoForm
+            pedidoBase={pedidoParaRemito}
+            agregar={async (remito) => {
+              await crearRemito(remito);
+              setPedidoParaRemito(null);
+            }}
+            cancelar={() => setPedidoParaRemito(null)}
+          />
+        </div>
+      )}
+
+      {/* Formulario de pedido */}
       <PedidoForm
         agregar={async (p) => {
           await crearPedido(p);
@@ -34,9 +53,10 @@ const PedidoList = () => {
           setPedidoEditar(null);
           cargarPedidos();
         }}
-        pedidoEditar={pedidoEditar}
         cancelar={() => setPedidoEditar(null)}
+        pedidoEditar={pedidoEditar}
       />
+
       <table>
         <thead>
           <tr>
@@ -71,6 +91,9 @@ const PedidoList = () => {
                   onClick={() => eliminarPedido(p.id).then(cargarPedidos)}
                 >
                   Eliminar
+                </button>
+                <button className="edit" onClick={() => setPedidoParaRemito(p)}>
+                  Generar Remito
                 </button>
               </td>
             </tr>

@@ -57,8 +57,8 @@ const Navbar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/localidades" onClick={() => setOpen(false)}>
-            Localidades
+          <Link to="/dashboard" onClick={() => setOpen(false)}>
+            Panel estadistico
           </Link>
         </li>
       </ul>

@@ -1,0 +1,20 @@
+.card-resumen {
+  flex: 1 1 200px;
+  background-color: #ffffff;
+  border: 1px solid #eee;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.card-resumen h3 {
+  color: #0a3d62;
+  margin-bottom: 0.5rem;
+}
+
+.card-resumen p {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #f39c12;
+}

@@ -8,6 +8,7 @@ import {
 import RemitoForm from "./RemitoForm";
 import { obtenerPedidos } from "../pedidos/PedidoService";
 import { obtenerClientes } from "../clientes/ClienteService";
+import { Link } from "react-router-dom";
 
 const RemitoList = () => {
   const [remitos, setRemitos] = useState([]);
@@ -83,6 +84,9 @@ const RemitoList = () => {
               <td>{r.fechaRemito?.slice(0, 10)}</td>
               <td>${getMontoTotal(r.pedidoId).toFixed(2)}</td>
               <td>{r.transportista}</td>
+              <Link to={`/remito/${r.id}`}>
+                <button>Ver / Imprimir</button>
+              </Link>
               <td>
                 <button className="edit" onClick={() => setRemitoEditar(r)}>
                   Editar

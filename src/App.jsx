@@ -12,6 +12,9 @@ import ScrollToTopButton from "./components/common/ScrollToTopButton";
 import TestFirebase from "./TestFireBase";
 
 import DashBoard from "./dashboard/DashBoard";
+import RemitoDetalle from "./components/pages/remitos/RemitoDetalle";
+
+<Route path="/remito/:id" element={<RemitoDetalle />} />;
 
 function App() {
   return (
@@ -25,6 +28,7 @@ function App() {
           <Route path="/remitos" element={<Remitos />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/dashboard" element={<DashBoard />} />
+          <Route path="/remito/:id" element={<RemitoDetalle />} />
         </Routes>
       </div>
       <Footer />

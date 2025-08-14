@@ -22,6 +22,7 @@ const Home = () => {
           <p>Organice sus contactos por zonas para mayor eficiencia.</p>
         </div>
       </section>
+
       <section className="about">
         <h2>Sobre TecnoCut</h2>
         <p>

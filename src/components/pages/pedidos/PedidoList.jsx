@@ -8,9 +8,13 @@ import {
 import PedidoForm from "./PedidoForm";
 import RemitoForm from "../remitos/RemitoForm";
 import { crearRemito } from "../remitos/RemitoService";
+import { obtenerClientes } from "../clientes/ClienteService";
+import { obtenerProductos } from "../productos/ProductoService"; // 👈 importar productos
 
 const PedidoList = () => {
   const [pedidos, setPedidos] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [productos, setProductos] = useState([]);
   const [pedidoEditar, setPedidoEditar] = useState(null);
   const [pedidoParaRemito, setPedidoParaRemito] = useState(null);
 
@@ -19,15 +23,36 @@ const PedidoList = () => {
     setPedidos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
+  const cargarClientes = async () => {
+    const snapshot = await obtenerClientes();
+    setClientes(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+  };
+
+  const cargarProductos = async () => {
+    const snapshot = await obtenerProductos();
+    setProductos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+  };
+
   useEffect(() => {
     cargarPedidos();
+    cargarClientes();
+    cargarProductos();
   }, []);
+
+  const getNombreCliente = (id) => {
+    const cliente = clientes.find((c) => c.id === id);
+    return cliente ? cliente.nombre : "Cliente no encontrado";
+  };
+
+  const getNombreProducto = (id) => {
+    const producto = productos.find((p) => p.id === id);
+    return producto ? producto.nombre : "Producto no encontrado";
+  };
 
   return (
     <div className="container">
       <h2>Gestión de Pedidos</h2>
 
-      {/* Formulario para generar remito desde pedido */}
       {pedidoParaRemito && (
         <div style={{ marginBottom: "2rem" }}>
           <h3>Generar Remito para Pedido #{pedidoParaRemito.id}</h3>
@@ -42,7 +67,6 @@ const PedidoList = () => {
         </div>
       )}
 
-      {/* Formulario de pedido */}
       <PedidoForm
         agregar={async (p) => {
           await crearPedido(p);
@@ -70,14 +94,15 @@ const PedidoList = () => {
         <tbody>
           {pedidos.map((p) => (
             <tr key={p.id}>
-              <td>{p.clienteId}</td>
+              <td>{getNombreCliente(p.clienteId)}</td>
               <td>{new Date(p.fechaPedido).toLocaleString()}</td>
               <td>{p.estado}</td>
               <td>
                 <ul>
                   {p.productos.map((prod, idx) => (
                     <li key={idx}>
-                      {prod.cantidad} x ${prod.precioUnitario}
+                      {getNombreProducto(prod.productoId)} — {prod.cantidad} x $
+                      {prod.precioUnitario}
                     </li>
                   ))}
                 </ul>

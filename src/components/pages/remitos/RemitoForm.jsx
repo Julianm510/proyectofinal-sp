@@ -74,6 +74,18 @@ const RemitoForm = ({ agregar, actualizar, cancelar, remitoEditar }) => {
         value={form.observaciones}
         onChange={handleChange}
       />
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1">Estado</label>
+        <select
+          name="estado"
+          value={form.estado}
+          onChange={handleChange}
+          className="w-full border rounded p-2"
+        >
+          <option value="pendiente">Pendiente</option>
+          <option value="cerrado">Cerrado</option>
+        </select>
+      </div>
       <button type="submit">
         {remitoEditar ? "Actualizar" : "Generar Remito"}
       </button>

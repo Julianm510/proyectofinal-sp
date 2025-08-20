@@ -44,10 +44,13 @@ const RemitoDetalle = () => {
         <strong>Dirección:</strong> {cliente.direccion}
       </p>
       <p>
-        <strong>CUIT/DNI:</strong> {cliente.cuit}
+        <strong>CUIT/DNI:</strong> {cliente.cuit_dni}
       </p>
       <p>
         <strong>Fecha:</strong> {remito.fechaRemito?.slice(0, 10)}
+      </p>
+      <p>
+        <strong>Estado:</strong> {remito.estado}
       </p>
       <p>
         <strong>Transportista:</strong> {remito.transportista}

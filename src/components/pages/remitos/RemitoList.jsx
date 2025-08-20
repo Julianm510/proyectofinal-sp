@@ -8,6 +8,7 @@ import {
 import RemitoForm from "./RemitoForm";
 import { obtenerPedidos } from "../pedidos/PedidoService";
 import { obtenerClientes } from "../clientes/ClienteService";
+import { obtenerProductos } from "../productos/ProductoService";
 import { Link } from "react-router-dom";
 
 const RemitoList = () => {
@@ -15,16 +16,24 @@ const RemitoList = () => {
   const [remitoEditar, setRemitoEditar] = useState(null);
   const [pedidos, setPedidos] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [productos, setProductos] = useState([]);
 
   const cargar = async () => {
-    const remitosSnap = await obtenerRemitos();
-    setRemitos(remitosSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    try {
+      const remitosData = await obtenerRemitos();
+      setRemitos(remitosData); // ✅ ya es array
 
-    const pedidosSnap = await obtenerPedidos();
-    setPedidos(pedidosSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      const pedidosSnap = await obtenerPedidos();
+      setPedidos(pedidosSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
 
-    const clientesSnap = await obtenerClientes();
-    setClientes(clientesSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      const clientesSnap = await obtenerClientes();
+      setClientes(clientesSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+      const productosSnap = await obtenerProductos();
+      setProductos(productosSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+    }
   };
 
   useEffect(() => {
@@ -35,6 +44,22 @@ const RemitoList = () => {
     const pedido = pedidos.find((p) => p.id === pedidoId);
     const cliente = clientes.find((c) => c.id === pedido?.clienteId);
     return cliente?.nombre || "Desconocido";
+  };
+
+  const getClienteCuit = (pedidoId) => {
+    const pedido = pedidos.find((p) => p.id === pedidoId);
+    const cliente = clientes.find((c) => c.id === pedido?.clienteId);
+    return cliente?.cuit || cliente?.dni || "Sin datos";
+  };
+
+  const getNombreProducto = (id) => {
+    const producto = productos.find((p) => p.id === id);
+    return producto ? producto.nombre : "Producto no encontrado";
+  };
+
+  const getProductosPedido = (pedidoId) => {
+    const pedido = pedidos.find((p) => p.id === pedidoId);
+    return pedido?.productos || [];
   };
 
   const getMontoTotal = (pedidoId) => {
@@ -70,9 +95,9 @@ const RemitoList = () => {
           <tr>
             <th>N° Remito</th>
             <th>Cliente</th>
+
             <th>Fecha</th>
-            <th>Monto</th>
-            <th>Transportista</th>
+
             <th>Acciones</th>
           </tr>
         </thead>
@@ -81,13 +106,13 @@ const RemitoList = () => {
             <tr key={r.id}>
               <td>{r.numeroRemito}</td>
               <td>{getClienteNombre(r.pedidoId)}</td>
+
               <td>{r.fechaRemito?.slice(0, 10)}</td>
-              <td>${getMontoTotal(r.pedidoId).toFixed(2)}</td>
-              <td>{r.transportista}</td>
-              <Link to={`/remito/${r.id}`}>
-                <button>Ver / Imprimir</button>
-              </Link>
+
               <td>
+                <Link to={`/remito/${r.id}`}>
+                  <button>Ver / Imprimir</button>
+                </Link>
                 <button className="edit" onClick={() => setRemitoEditar(r)}>
                   Editar
                 </button>

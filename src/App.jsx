@@ -22,7 +22,7 @@ function App() {
       <Navbar />
       <div style={{ padding: "1rem" }}>
         <Routes>
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/productos" element={<Productos />} />
           <Route path="/remitos" element={<Remitos />} />

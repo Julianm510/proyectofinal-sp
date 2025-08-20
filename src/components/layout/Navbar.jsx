@@ -10,7 +10,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="logo">
-        <Link to="/home ">
+        <Link to="/">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="32"
@@ -32,7 +32,7 @@ const Navbar = () => {
 
       <ul className={`navbar-links ${open ? "open" : ""}`}>
         <li>
-          <Link to="/home" onClick={() => setOpen(false)}>
+          <Link to="/" onClick={() => setOpen(false)}>
             Inicio
           </Link>
         </li>

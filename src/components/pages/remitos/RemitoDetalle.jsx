@@ -84,7 +84,7 @@ const RemitoDetalle = () => {
               ? new Date(remito.fechaRemito).toLocaleDateString()
               : "-"}
           </p>
-          <strong>Estado:</strong> {remito.estado}
+          <strong>Estado:</strong> {remito.estado || "Pendiente"}
         </p>
         <p>
           <strong>Observaciones:</strong> {remito.observaciones}

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import "./Home.css";
 
 const Home = () => {
@@ -5,20 +6,29 @@ const Home = () => {
     <div className="home">
       <section className="hero">
         <h1>Bienvenido a TecnoCut</h1>
-        <p>Gestione sus remitos de forma rápida, organizada y segura.</p>
+        <p></p>
       </section>
 
       <section className="features">
         <div className="feature-card">
-          <h2>📦 Gestión de Productos</h2>
+          <Link to="/productos">
+            <h2>📦 Gestión de Productos</h2>
+          </Link>
+
           <p>Cargue y mantenga su stock actualizado fácilmente.</p>
         </div>
         <div className="feature-card">
-          <h2>🧾 Emisión de Remitos</h2>
+          <Link to="/Remitos">
+            <h2>🧾 Emisión de Remitos</h2>
+          </Link>
+
           <p>Genere remitos personalizados con control de numeración.</p>
         </div>
         <div className="feature-card">
-          <h2>👥 Clientes y Localidades</h2>
+          <Link to="/Clientes">
+            <h2>👥 Clientes</h2>
+          </Link>
+
           <p>Organice sus contactos por zonas para mayor eficiencia.</p>
         </div>
       </section>

@@ -1,4 +1,3 @@
-// src/components/pedidos/PedidoForm.jsx
 import { useEffect, useState } from "react";
 import { obtenerClientes } from "../clientes/ClienteService";
 import { obtenerProductos } from "../productos/ProductoService";
@@ -7,6 +6,7 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
   const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState([]);
   const [form, setForm] = useState({
+    numeroPedido: "", // 👈 nuevo campo
     clienteId: "",
     productos: [],
     estado: "pendiente",
@@ -47,14 +47,27 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const nuevo = { ...form, fechaPedido: new Date().toISOString() };
+    const nuevo = { ...form, fechaPedido: new Date().toLocaleDateString() };
     if (pedidoEditar) actualizar(pedidoEditar.id, nuevo);
     else agregar(nuevo);
-    setForm({ clienteId: "", productos: [], estado: "pendiente" });
+    setForm({
+      numeroPedido: "",
+      clienteId: "",
+      productos: [],
+      estado: "pendiente",
+    });
   };
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* 🔹 Nuevo input número de pedido */}
+      <input
+        type="text"
+        placeholder="Número de Pedido"
+        value={form.numeroPedido}
+        onChange={(e) => setForm({ ...form, numeroPedido: e.target.value })}
+      />
+
       <select
         name="clienteId"
         value={form.clienteId}
@@ -92,7 +105,19 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
         </button>
       </div>
 
+      {/* 🔹 Resumen agregado con N° de Pedido */}
       <ul>
+        {form.numeroPedido && (
+          <li>
+            <strong>N° Pedido:</strong> {form.numeroPedido}
+          </li>
+        )}
+        {form.clienteId && (
+          <li>
+            <strong>Cliente:</strong>{" "}
+            {clientes.find((c) => c.id === form.clienteId)?.nombre}
+          </li>
+        )}
         {form.productos.map((p, index) => (
           <li key={index}>
             {productos.find((prod) => prod.id === p.productoId)?.nombre ||

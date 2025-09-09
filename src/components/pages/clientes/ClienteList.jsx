@@ -11,46 +11,49 @@ const ClienteList = () => {
   const [clientes, setClientes] = useState([]);
   const [clienteEditar, setClienteEditar] = useState(null);
 
-  const cargarClientes = async () => {
-    const snapshot = await obtenerClientes();
-    setClientes(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-  };
-
   useEffect(() => {
     cargarClientes();
   }, []);
 
+  const cargarClientes = async () => {
+    const snap = await obtenerClientes();
+    setClientes(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  };
+
   const agregarCliente = async (cliente) => {
     await crearCliente(cliente);
-    cargarClientes();
+    await cargarClientes();
   };
 
-  const guardarActualizacion = async (id, cliente) => {
+  const actualizarClienteFn = async (id, cliente) => {
     await actualizarCliente(id, cliente);
+    await cargarClientes();
     setClienteEditar(null);
-    cargarClientes();
   };
 
-  const borrarCliente = async (id) => {
+  const eliminarClienteFn = async (id) => {
     await eliminarCliente(id);
-    cargarClientes();
+    await cargarClientes();
   };
 
   return (
-    <div className="container">
+    <div>
       <h2>Gestión de Clientes</h2>
       <ClienteForm
         agregarCliente={agregarCliente}
         clienteEditar={clienteEditar}
-        actualizarCliente={guardarActualizacion}
+        actualizarCliente={actualizarClienteFn}
         cancelarEdicion={() => setClienteEditar(null)}
       />
-      <table>
+
+      <table className="table table-striped mt-3">
         <thead>
           <tr>
             <th>Nombre</th>
             <th>CUIT/DNI</th>
             <th>Dirección</th>
+            <th>Email</th>
+            <th>Localidad</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -60,11 +63,19 @@ const ClienteList = () => {
               <td>{c.nombre}</td>
               <td>{c.cuit_dni}</td>
               <td>{c.direccion}</td>
+              <td>{c.email}</td>
+              <td>{c.localidad}</td>
               <td>
-                <button className="edit" onClick={() => setClienteEditar(c)}>
+                <button
+                  className="btn btn-warning btn-sm me-2"
+                  onClick={() => setClienteEditar(c)}
+                >
                   Editar
                 </button>
-                <button className="delete" onClick={() => borrarCliente(c.id)}>
+                <button
+                  className="btn btn-warning btn-sm"
+                  onClick={() => eliminarClienteFn(c.id)}
+                >
                   Eliminar
                 </button>
               </td>

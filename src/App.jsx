@@ -31,7 +31,7 @@ function App() {
           <Route path="/remito/:id" element={<RemitoDetalle />} />
         </Routes>
       </div>
-      <Footer />
+      {/* <Footer /> */}
       <ScrollToTopButton />
     </BrowserRouter>
   );

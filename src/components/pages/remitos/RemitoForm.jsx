@@ -74,7 +74,7 @@ const RemitoForm = ({ agregar, actualizar, cancelar, remitoEditar }) => {
         value={form.observaciones}
         onChange={handleChange}
       />
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className="block text-sm font-medium mb-1">Estado</label>
         <select
           name="estado"
@@ -85,7 +85,7 @@ const RemitoForm = ({ agregar, actualizar, cancelar, remitoEditar }) => {
           <option value="pendiente">Pendiente</option>
           <option value="cerrado">Cerrado</option>
         </select>
-      </div>
+      </div> */}
       <button type="submit">
         {remitoEditar ? "Actualizar" : "Generar Remito"}
       </button>

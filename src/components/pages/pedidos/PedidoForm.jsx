@@ -6,7 +6,7 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
   const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState([]);
   const [form, setForm] = useState({
-    numeroPedido: "", // 👈 nuevo campo
+    numeroPedido: "",
     clienteId: "",
     productos: [],
     estado: "pendiente",
@@ -45,11 +45,34 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
     }
   };
 
+  const eliminarProductoDelPedido = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      productos: prev.productos.filter((_, i) => i !== index),
+    }));
+  };
+
+  const actualizarCantidadProducto = (index, nuevaCantidad) => {
+    setForm((prev) => {
+      const nuevosProductos = [...prev.productos];
+      if (nuevaCantidad > 0) {
+        nuevosProductos[index].cantidad = parseInt(nuevaCantidad);
+      }
+      return { ...prev, productos: nuevosProductos };
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const nuevo = { ...form, fechaPedido: new Date().toLocaleDateString() };
+    const hoy = new Date();
+    const fechaFormateada = `${hoy.getDate()}/${
+      hoy.getMonth() + 1
+    }/${hoy.getFullYear()}`;
+
+    const nuevo = { ...form, fechaPedido: fechaFormateada };
     if (pedidoEditar) actualizar(pedidoEditar.id, nuevo);
     else agregar(nuevo);
+
     setForm({
       numeroPedido: "",
       clienteId: "",
@@ -60,10 +83,10 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* 🔹 Nuevo input número de pedido */}
       <input
         type="text"
-        placeholder="Número de Pedido"
+        name="numeroPedido"
+        placeholder="N° Pedido"
         value={form.numeroPedido}
         onChange={(e) => setForm({ ...form, numeroPedido: e.target.value })}
       />
@@ -100,38 +123,125 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
           value={cantidad}
           onChange={(e) => setCantidad(e.target.value)}
         />
-        <button type="button" onClick={agregarProductoAlPedido}>
+        <button
+          type="button"
+          style={{
+            backgroundColor: "orange",
+            color: "white",
+            border: "none",
+            padding: "5px 10px",
+            marginLeft: "5px",
+            cursor: "pointer",
+          }}
+          onClick={agregarProductoAlPedido}
+        >
           Agregar Producto
         </button>
       </div>
 
-      {/* 🔹 Resumen agregado con N° de Pedido */}
-      <ul>
-        {form.numeroPedido && (
-          <li>
-            <strong>N° Pedido:</strong> {form.numeroPedido}
-          </li>
-        )}
-        {form.clienteId && (
-          <li>
-            <strong>Cliente:</strong>{" "}
-            {clientes.find((c) => c.id === form.clienteId)?.nombre}
-          </li>
-        )}
-        {form.productos.map((p, index) => (
-          <li key={index}>
-            {productos.find((prod) => prod.id === p.productoId)?.nombre ||
-              "Producto eliminado"}{" "}
-            - {p.cantidad} u. x ${p.precioUnitario}
-          </li>
-        ))}
-      </ul>
+      {/* Tabla de productos */}
+      {form.productos.length > 0 && (
+        <table
+          style={{
+            width: "100%",
+            marginTop: "10px",
+            borderCollapse: "collapse",
+          }}
+        >
+          <thead>
+            <tr style={{ backgroundColor: "#f2f2f2" }}>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                Producto
+              </th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                Cantidad
+              </th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                Precio Unitario
+              </th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                Subtotal
+              </th>
+              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {form.productos.map((p, index) => {
+              const producto = productos.find(
+                (prod) => prod.id === p.productoId
+              );
+              return (
+                <tr key={index}>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    {producto ? producto.nombre : "Producto eliminado"}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    <input
+                      type="number"
+                      min="1"
+                      value={p.cantidad}
+                      onChange={(e) =>
+                        actualizarCantidadProducto(index, e.target.value)
+                      }
+                      style={{ width: "60px" }}
+                    />
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    ${p.precioUnitario}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    ${p.precioUnitario * p.cantidad}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    <button
+                      type="button"
+                      style={{
+                        backgroundColor: "orange",
+                        color: "white",
+                        border: "none",
+                        padding: "5px 10px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => eliminarProductoDelPedido(index)}
+                    >
+                      Quitar
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
 
-      <button type="submit">
+      <button
+        type="submit"
+        style={{
+          backgroundColor: "orange",
+          color: "white",
+          border: "none",
+          padding: "8px 15px",
+          marginTop: "10px",
+          cursor: "pointer",
+        }}
+      >
         {pedidoEditar ? "Actualizar" : "Guardar Pedido"}
       </button>
       {pedidoEditar && (
-        <button type="button" onClick={cancelar}>
+        <button
+          type="button"
+          onClick={cancelar}
+          style={{
+            backgroundColor: "gray",
+            color: "white",
+            border: "none",
+            padding: "8px 15px",
+            marginLeft: "10px",
+            cursor: "pointer",
+          }}
+        >
           Cancelar
         </button>
       )}

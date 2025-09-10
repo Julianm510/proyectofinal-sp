@@ -84,7 +84,7 @@ const RemitoDetalle = () => {
               ? new Date(remito.fechaRemito).toLocaleDateString()
               : "-"}
           </p>
-          <strong>Estado:</strong> {remito.estado || "Pendiente"}
+          {/* <strong>Estado:</strong> {remito.estado || "Pendiente"} */}
         </p>
         <p>
           <strong>Observaciones:</strong> {remito.observaciones}
@@ -100,7 +100,7 @@ const RemitoDetalle = () => {
           <tr>
             <th>Producto</th>
             <th>Cantidad</th>
-            <th>Precio Unitario</th>
+            {/* <th>Precio Unitario</th> */}
           </tr>
         </thead>
         <tbody>
@@ -108,18 +108,18 @@ const RemitoDetalle = () => {
             <tr key={idx}>
               <td>{getNombreProducto(prod.productoId)}</td>
               <td>{prod.cantidad}</td>
-              <td>${prod.precioUnitario}</td>
+              {/* <td>${prod.precioUnitario}</td> */}
             </tr>
           ))}
         </tbody>
       </table>
 
-      <h3>
+      {/* <h3>
         Total: $
         {pedido.productos
           .reduce((acc, p) => acc + p.cantidad * p.precioUnitario, 0)
           .toFixed(2)}
-      </h3>
+      </h3> */}
 
       <button onClick={imprimir}>Imprimir</button>
     </div>

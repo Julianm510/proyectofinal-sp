@@ -66,14 +66,11 @@ const ClienteList = () => {
               <td>{c.email}</td>
               <td>{c.localidad}</td>
               <td>
-                <button
-                  className="btn btn-warning btn-sm me-2"
-                  onClick={() => setClienteEditar(c)}
-                >
+                <button className="edit" onClick={() => setClienteEditar(c)}>
                   Editar
                 </button>
                 <button
-                  className="btn btn-warning btn-sm"
+                  className="delete"
                   onClick={() => eliminarClienteFn(c.id)}
                 >
                   Eliminar

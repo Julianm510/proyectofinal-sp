@@ -19,7 +19,7 @@ const Home = () => {
         </div>
         <div className="feature-card">
           <Link to="/Remitos">
-            <h2>🧾 Emisión de Remitos</h2>
+            <h2>🧾 Listado de Remitos</h2>
           </Link>
 
           <p>Genere remitos personalizados con control de numeración.</p>

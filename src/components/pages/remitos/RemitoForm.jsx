@@ -94,7 +94,6 @@ const RemitoForm = ({ pedido, cliente, onSave, remitos, productos }) => {
           );
         })}
       </ul>
-
       <button type="submit" className="btn btn-warning mt-2">
         Guardar Remito
       </button>

@@ -52,7 +52,7 @@ const RemitoList = () => {
             <th>N° Pedido</th>
             <th>Cliente</th>
             <th>Fecha</th>
-            <th>Estado</th>
+
             <th>Productos</th>
             <th>Acciones</th>
           </tr>
@@ -69,7 +69,7 @@ const RemitoList = () => {
                 <td>{r.numeroPedido}</td>
                 <td>{r.clienteNombre}</td>
                 <td>{r.fechaRemito}</td>
-                <td>{r.estado}</td>
+
                 <td>
                   <ul>
                     {r.productos?.map((p, i) => {

@@ -15,20 +15,16 @@ const RemitoDetalle = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // Obtener el remito
+        // ✅ Obtener el remito por ID
         const r = await obtenerRemitoPorId(id);
         setRemito(r);
 
-        // Obtener pedidos
-        const pedidosSnap = await obtenerPedidos();
-        const pedidosList = pedidosSnap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
+        // ✅ Obtener pedidos (ya devuelve array, no snapshot)
+        const pedidosList = await obtenerPedidos();
         const pedidoEncontrado = pedidosList.find((p) => p.id === r.pedidoId);
         setPedido(pedidoEncontrado);
 
-        // Obtener cliente del pedido
+        // ✅ Obtener cliente del pedido
         if (pedidoEncontrado?.clienteId) {
           const clientesSnap = await obtenerClientes();
           const clientesList = clientesSnap.docs.map((d) => ({
@@ -41,7 +37,7 @@ const RemitoDetalle = () => {
           setCliente(clienteEncontrado);
         }
 
-        // Obtener productos
+        // ✅ Obtener productos
         const productosSnap = await obtenerProductos();
         const productosList = productosSnap.docs.map((d) => ({
           id: d.id,
@@ -65,61 +61,55 @@ const RemitoDetalle = () => {
     window.print();
   };
 
-  if (!remito || !pedido || !cliente) {
+  if (!remito) {
     return <p>Cargando remito...</p>;
   }
 
   return (
     <div className="container">
       <h2>Remito N° {remito.numeroRemito}</h2>
+
       <p>
-        <strong>Cliente:</strong> {cliente.nombre}
+        <strong>Cliente:</strong>{" "}
+        {cliente ? cliente.nombre : "Cliente no encontrado"}
       </p>
       <p>
-        <strong>CUIT / DNI:</strong> {cliente.cuit_dni}
-        <p>
-          <p>
-            <strong>Fecha:</strong>{" "}
-            {remito.fechaRemito
-              ? new Date(remito.fechaRemito).toLocaleDateString()
-              : "-"}
-          </p>
-          {/* <strong>Estado:</strong> {remito.estado || "Pendiente"} */}
-        </p>
-        <p>
-          <strong>Observaciones:</strong> {remito.observaciones}
-        </p>
+        <strong>CUIT / DNI:</strong> {cliente ? cliente.cuit_dni : "—"}
+      </p>
+      <p>
+        <strong>Fecha:</strong>{" "}
+        {remito.fechaRemito
+          ? new Date(remito.fechaRemito).toLocaleDateString()
+          : "-"}
+      </p>
+      <p>
+        <strong>Observaciones:</strong> {remito.observaciones || "—"}
       </p>
       <p>
         <strong>Transportista:</strong> {remito.transportista || "No asignado"}
       </p>
 
       <h3>Productos</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            {/* <th>Precio Unitario</th> */}
-          </tr>
-        </thead>
-        <tbody>
-          {pedido.productos.map((prod, idx) => (
-            <tr key={idx}>
-              <td>{getNombreProducto(prod.productoId)}</td>
-              <td>{prod.cantidad}</td>
-              {/* <td>${prod.precioUnitario}</td> */}
+      {pedido && pedido.productos ? (
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* <h3>
-        Total: $
-        {pedido.productos
-          .reduce((acc, p) => acc + p.cantidad * p.precioUnitario, 0)
-          .toFixed(2)}
-      </h3> */}
+          </thead>
+          <tbody>
+            {pedido.productos.map((prod, idx) => (
+              <tr key={idx}>
+                <td>{getNombreProducto(prod.productoId)}</td>
+                <td>{prod.cantidad}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p>No se encontraron productos para este remito.</p>
+      )}
 
       <button onClick={imprimir}>Imprimir</button>
     </div>

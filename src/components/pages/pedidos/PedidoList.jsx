@@ -1,3 +1,4 @@
+// src/components/pedidos/PedidoList.jsx
 import { useEffect, useState } from "react";
 import {
   crearPedido,
@@ -8,7 +9,6 @@ import {
 import PedidoForm from "./PedidoForm";
 import { obtenerClientes } from "../clientes/ClienteService";
 import { obtenerProductos } from "../productos/ProductoService";
-import { crearRemito } from "../remitos/RemitoService";
 import { Link } from "react-router-dom";
 
 const PedidoList = () => {
@@ -22,11 +22,11 @@ const PedidoList = () => {
   }, []);
 
   const cargarDatos = async () => {
-    const snapPedidos = await obtenerPedidos();
+    const pedidosData = await obtenerPedidos();
     const snapClientes = await obtenerClientes();
     const snapProductos = await obtenerProductos();
 
-    setPedidos(snapPedidos.docs.map((d) => ({ id: d.id, ...d.data() })));
+    setPedidos(pedidosData); // ✅ ya es un array
     setClientes(snapClientes.docs.map((d) => ({ id: d.id, ...d.data() })));
     setProductos(snapProductos.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
@@ -43,24 +43,10 @@ const PedidoList = () => {
   };
 
   const eliminar = async (id) => {
-    await eliminarPedido(id);
-    await cargarDatos();
-  };
-
-  const generarRemito = async (pedido) => {
-    const cliente = clientes.find((c) => c.id === pedido.clienteId);
-    if (!cliente) return;
-
-    const remito = {
-      clienteId: pedido.clienteId,
-      clienteNombre: cliente.nombre,
-      fecha: new Date().toLocaleString(),
-      productos: pedido.productos,
-      estado: "pendiente",
-    };
-
-    await crearRemito(remito);
-    alert("Remito generado con éxito");
+    if (window.confirm("¿Seguro que deseas eliminar este pedido?")) {
+      await eliminarPedido(id);
+      await cargarDatos();
+    }
   };
 
   return (
@@ -115,10 +101,8 @@ const PedidoList = () => {
                   <button className="delete" onClick={() => eliminar(p.id)}>
                     Eliminar
                   </button>
-                  <Link to="/remitos">
-                    <button className="edit" onClick={() => generarRemito(p)}>
-                      Generar Remito
-                    </button>
+                  <Link to="/remitos" state={{ pedido: p, cliente: cliente }}>
+                    <button className="edit">Generar Remito</button>
                   </Link>
                 </td>
               </tr>

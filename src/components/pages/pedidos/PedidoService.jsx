@@ -1,4 +1,4 @@
-// src/components/pedidos/PedidoService.js
+import { db } from "../../../FireBaseConfig";
 import {
   collection,
   addDoc,
@@ -7,12 +7,29 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import { db } from "../../../FireBaseConfig";
 
-const ref = collection(db, "pedidos");
+const pedidosCollection = collection(db, "pedidos");
 
-export const crearPedido = (data) => addDoc(ref, data);
-export const obtenerPedidos = () => getDocs(ref);
-export const actualizarPedido = (id, data) =>
-  updateDoc(doc(db, "pedidos", id), data);
-export const eliminarPedido = (id) => deleteDoc(doc(db, "pedidos", id));
+// Crear pedido
+export const crearPedido = async (pedido) => {
+  const docRef = await addDoc(pedidosCollection, pedido);
+  return { id: docRef.id, ...pedido };
+};
+
+// Obtener pedidos
+export const obtenerPedidos = async () => {
+  const snapshot = await getDocs(pedidosCollection);
+  return snapshot.docs.map((docu) => ({ id: docu.id, ...docu.data() }));
+};
+
+// Actualizar pedido
+export const actualizarPedido = async (id, pedidoActualizado) => {
+  const pedidoRef = doc(db, "pedidos", id);
+  await updateDoc(pedidoRef, pedidoActualizado);
+};
+
+// Eliminar pedido ✅
+export const eliminarPedido = async (id) => {
+  const pedidoRef = doc(db, "pedidos", id);
+  await deleteDoc(pedidoRef);
+};

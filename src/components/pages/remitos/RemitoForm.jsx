@@ -1,99 +1,103 @@
 // src/components/remitos/RemitoForm.jsx
 import { useState, useEffect } from "react";
-import { obtenerPedidos } from "../pedidos/PedidoService";
+import { crearRemito } from "./RemitoService";
 
-const RemitoForm = ({ agregar, actualizar, cancelar, remitoEditar }) => {
+const RemitoForm = ({ pedido, cliente, onSave, remitos, productos }) => {
   const [form, setForm] = useState({
-    pedidoId: "",
-    fechaRemito: "",
     numeroRemito: "",
-    transportista: "",
-    observaciones: "",
+    numeroPedido: "",
+    clienteNombre: "",
+    fechaRemito: new Date().toLocaleDateString(),
+    estado: "pendiente",
+    productos: [],
   });
 
-  const [pedidos, setPedidos] = useState([]);
-
   useEffect(() => {
-    obtenerPedidos().then((snap) =>
-      setPedidos(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-    if (remitoEditar) setForm(remitoEditar);
-  }, [remitoEditar]);
+    if (pedido && cliente) {
+      setForm({
+        numeroRemito: "",
+        numeroPedido: pedido.numeroPedido,
+        clienteNombre: cliente.nombre,
+        fechaRemito: new Date().toLocaleDateString(),
+        estado: "pendiente",
+        productos: pedido.productos,
+      });
+    }
+  }, [pedido, cliente]);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const getNextNumeroRemito = () => {
+    if (!remitos || remitos.length === 0) return "R-1";
+    const ult = remitos[remitos.length - 1].numeroRemito;
+    const num = parseInt(ult.replace("R-", "")) + 1;
+    return `R-${num}`;
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = {
+    const nuevoRemito = {
       ...form,
-      fechaRemito: form.fechaRemito || new Date().toISOString(),
+      numeroRemito: getNextNumeroRemito(),
     };
-    if (remitoEditar) actualizar(remitoEditar.id, data);
-    else agregar(data);
+    await crearRemito(nuevoRemito);
+    if (onSave) onSave();
     setForm({
-      pedidoId: "",
-      fechaRemito: "",
       numeroRemito: "",
-      transportista: "",
-      observaciones: "",
+      numeroPedido: "",
+      clienteNombre: "",
+      fechaRemito: new Date().toLocaleDateString(),
+      estado: "pendiente",
+      productos: [],
     });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <select name="pedidoId" value={form.pedidoId} onChange={handleChange}>
-        <option value="">Seleccionar Pedido</option>
-        {pedidos.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.id} - {p.fechaPedido?.slice(0, 10)}
-          </option>
-        ))}
-      </select>
-      <input
-        name="fechaRemito"
-        type="date"
-        value={form.fechaRemito.slice(0, 10)}
-        onChange={handleChange}
-      />
-      <input
-        name="numeroRemito"
-        placeholder="N° Remito"
-        value={form.numeroRemito}
-        onChange={handleChange}
-      />
-      <input
-        name="transportista"
-        placeholder="Transportista"
-        value={form.transportista}
-        onChange={handleChange}
-      />
-      <input
-        name="observaciones"
-        placeholder="Observaciones"
-        value={form.observaciones}
-        onChange={handleChange}
-      />
-      {/* <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Estado</label>
-        <select
-          name="estado"
-          value={form.estado}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-        >
-          <option value="pendiente">Pendiente</option>
-          <option value="cerrado">Cerrado</option>
-        </select>
-      </div> */}
-      <button type="submit">
-        {remitoEditar ? "Actualizar" : "Generar Remito"}
+    <form onSubmit={handleSubmit} className="mb-3">
+      <div className="row g-2">
+        <div className="col">
+          <input
+            name="numeroPedido"
+            placeholder="N° Pedido"
+            value={form.numeroPedido}
+            readOnly
+            className="form-control"
+          />
+        </div>
+        <div className="col">
+          <input
+            name="clienteNombre"
+            placeholder="Cliente"
+            value={form.clienteNombre}
+            readOnly
+            className="form-control"
+          />
+        </div>
+        <div className="col">
+          <input
+            name="fechaRemito"
+            placeholder="Fecha"
+            value={form.fechaRemito}
+            readOnly
+            className="form-control"
+          />
+        </div>
+      </div>
+
+      {/* 🔹 Lista de productos con nombre en vez de ID */}
+      <ul className="mt-2">
+        {form.productos?.map((p, i) => {
+          const prod = productos.find((pr) => pr.id === p.productoId);
+          return (
+            <li key={i}>
+              {prod ? prod.nombre : "Producto eliminado"} — {p.cantidad} x $
+              {p.precioUnitario}
+            </li>
+          );
+        })}
+      </ul>
+
+      <button type="submit" className="btn btn-warning mt-2">
+        Guardar Remito
       </button>
-      {remitoEditar && (
-        <button type="button" onClick={cancelar}>
-          Cancelar
-        </button>
-      )}
     </form>
   );
 };

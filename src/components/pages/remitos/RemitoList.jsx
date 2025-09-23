@@ -1,75 +1,35 @@
+// src/components/remitos/RemitoList.jsx
 import { useEffect, useState } from "react";
-import {
-  crearRemito,
-  obtenerRemitos,
-  actualizarRemito,
-  eliminarRemito,
-} from "./RemitoService";
+import { useLocation, Link } from "react-router-dom";
 import RemitoForm from "./RemitoForm";
-import { obtenerPedidos } from "../pedidos/PedidoService";
-import { obtenerClientes } from "../clientes/ClienteService";
+import { obtenerRemitos, eliminarRemito } from "./RemitoService";
 import { obtenerProductos } from "../productos/ProductoService";
-import { Link } from "react-router-dom";
 
 const RemitoList = () => {
+  const location = useLocation();
+  const pedido = location.state?.pedido || null;
+  const cliente = location.state?.cliente || null;
+
   const [remitos, setRemitos] = useState([]);
-  const [remitoEditar, setRemitoEditar] = useState(null);
-  const [pedidos, setPedidos] = useState([]);
-  const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState([]);
 
-  const cargar = async () => {
-    try {
-      const remitosData = await obtenerRemitos();
-      setRemitos(remitosData); // ✅ ya es array
-
-      const pedidosSnap = await obtenerPedidos();
-      setPedidos(pedidosSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-
-      const clientesSnap = await obtenerClientes();
-      setClientes(clientesSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-
-      const productosSnap = await obtenerProductos();
-      setProductos(productosSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
-    }
-  };
-
   useEffect(() => {
-    cargar();
+    cargarDatos();
   }, []);
 
-  const getClienteNombre = (pedidoId) => {
-    const pedido = pedidos.find((p) => p.id === pedidoId);
-    const cliente = clientes.find((c) => c.id === pedido?.clienteId);
-    return cliente?.nombre || "Desconocido";
+  const cargarDatos = async () => {
+    const remitosData = await obtenerRemitos();
+    const snapProductos = await obtenerProductos();
+
+    setRemitos(remitosData);
+    setProductos(snapProductos.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
-  const getClienteCuit = (pedidoId) => {
-    const pedido = pedidos.find((p) => p.id === pedidoId);
-    const cliente = clientes.find((c) => c.id === pedido?.clienteId);
-    return cliente?.cuit || cliente?.dni || "Sin datos";
-  };
-
-  const getNombreProducto = (id) => {
-    const producto = productos.find((p) => p.id === id);
-    return producto ? producto.nombre : "Producto no encontrado";
-  };
-
-  const getProductosPedido = (pedidoId) => {
-    const pedido = pedidos.find((p) => p.id === pedidoId);
-    return pedido?.productos || [];
-  };
-
-  const getMontoTotal = (pedidoId) => {
-    const pedido = pedidos.find((p) => p.id === pedidoId);
-    return (
-      pedido?.productos?.reduce(
-        (acc, item) => acc + item.cantidad * item.precioUnitario,
-        0
-      ) ?? 0
-    );
+  const eliminar = async (id) => {
+    if (window.confirm("¿Seguro que deseas eliminar este remito?")) {
+      await eliminarRemito(id);
+      await cargarDatos();
+    }
   };
 
   return (
@@ -77,54 +37,65 @@ const RemitoList = () => {
       <h2>Gestión de Remitos</h2>
 
       <RemitoForm
-        agregar={async (r) => {
-          await crearRemito(r);
-          cargar();
-        }}
-        actualizar={async (id, r) => {
-          await actualizarRemito(id, r);
-          setRemitoEditar(null);
-          cargar();
-        }}
-        remitoEditar={remitoEditar}
-        cancelar={() => setRemitoEditar(null)}
+        pedido={pedido}
+        cliente={cliente}
+        onSave={cargarDatos}
+        remitos={remitos}
+        productos={productos}
       />
 
-      <table>
+      <h4 className="mt-4">Remitos Existentes</h4>
+      <table className="table table-striped mt-2">
         <thead>
           <tr>
             <th>N° Remito</th>
+            <th>N° Pedido</th>
             <th>Cliente</th>
-
             <th>Fecha</th>
-
+            <th>Estado</th>
+            <th>Productos</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {remitos.map((r) => (
-            <tr key={r.id}>
-              <td>{r.numeroRemito}</td>
-              <td>{getClienteNombre(r.pedidoId)}</td>
-
-              <td>{r.fechaRemito?.slice(0, 10)}</td>
-
-              <td>
-                <Link to={`/remito/${r.id}`}>
-                  <button>Ver / Imprimir</button>
-                </Link>
-                <button className="edit" onClick={() => setRemitoEditar(r)}>
-                  Editar
-                </button>
-                <button
-                  className="delete"
-                  onClick={() => eliminarRemito(r.id).then(cargar)}
-                >
-                  Eliminar
-                </button>
-              </td>
+          {remitos.length === 0 ? (
+            <tr>
+              <td colSpan="7">No hay remitos registrados</td>
             </tr>
-          ))}
+          ) : (
+            remitos.map((r) => (
+              <tr key={r.id}>
+                <td>{r.numeroRemito}</td>
+                <td>{r.numeroPedido}</td>
+                <td>{r.clienteNombre}</td>
+                <td>{r.fechaRemito}</td>
+                <td>{r.estado}</td>
+                <td>
+                  <ul>
+                    {r.productos?.map((p, i) => {
+                      const prod = productos.find(
+                        (pr) => pr.id === p.productoId
+                      );
+                      return (
+                        <li key={i}>
+                          {prod ? prod.nombre : "Producto eliminado"} —{" "}
+                          {p.cantidad} x ${p.precioUnitario}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </td>
+                <td>
+                  <button className="delete" onClick={() => eliminar(r.id)}>
+                    Eliminar
+                  </button>
+                  <Link to={`/remitos/${r.id}`}>
+                    <button className="edit">Ver</button>
+                  </Link>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

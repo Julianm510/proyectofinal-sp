@@ -10,6 +10,8 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
     clienteId: "",
     productos: [],
     estado: "pendiente",
+    transportista: "",
+    observaciones: "",
   });
 
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
@@ -78,6 +80,8 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
       clienteId: "",
       productos: [],
       estado: "pendiente",
+      transportista: "",
+      observaciones: "",
     });
   };
 
@@ -104,6 +108,23 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
         ))}
       </select>
 
+      {/* Transportista */}
+      <input
+        type="text"
+        placeholder="Transportista"
+        value={form.transportista}
+        onChange={(e) => setForm({ ...form, transportista: e.target.value })}
+      />
+
+      {/* Observaciones */}
+      <input
+        type="text"
+        placeholder="Observaciones"
+        value={form.observaciones}
+        onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
+      />
+
+      {/* Selección de productos */}
       <div>
         <select
           value={productoSeleccionado}
@@ -150,21 +171,11 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
         >
           <thead>
             <tr style={{ backgroundColor: "#f2f2f2" }}>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                Producto
-              </th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                Cantidad
-              </th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                Precio Unitario
-              </th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                Subtotal
-              </th>
-              <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                Acciones
-              </th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio Unitario</th>
+              <th>Subtotal</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -174,10 +185,8 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
               );
               return (
                 <tr key={index}>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                    {producto ? producto.nombre : "Producto eliminado"}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                  <td>{producto ? producto.nombre : "Producto eliminado"}</td>
+                  <td>
                     <input
                       type="number"
                       min="1"
@@ -188,13 +197,9 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
                       style={{ width: "60px" }}
                     />
                   </td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                    ${p.precioUnitario}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                    ${p.precioUnitario * p.cantidad}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                  <td>${p.precioUnitario}</td>
+                  <td>${p.precioUnitario * p.cantidad}</td>
+                  <td>
                     <button
                       type="button"
                       style={{

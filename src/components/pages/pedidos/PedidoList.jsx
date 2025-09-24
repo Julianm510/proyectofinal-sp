@@ -26,7 +26,7 @@ const PedidoList = () => {
     const snapClientes = await obtenerClientes();
     const snapProductos = await obtenerProductos();
 
-    setPedidos(pedidosData); // ✅ ya es un array
+    setPedidos(pedidosData);
     setClientes(snapClientes.docs.map((d) => ({ id: d.id, ...d.data() })));
     setProductos(snapProductos.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
@@ -66,6 +66,8 @@ const PedidoList = () => {
             <th>Cliente</th>
             <th>Fecha</th>
             <th>Estado</th>
+            <th>Transportista</th>
+            <th>Observaciones</th>
             <th>Productos</th>
             <th>Acciones</th>
           </tr>
@@ -79,6 +81,8 @@ const PedidoList = () => {
                 <td>{cliente ? cliente.nombre : "Cliente eliminado"}</td>
                 <td>{p.fechaPedido}</td>
                 <td>{p.estado}</td>
+                <td>{p.transportista || "—"}</td>
+                <td>{p.observaciones || "—"}</td>
                 <td>
                   <ul>
                     {p.productos.map((prod, index) => {

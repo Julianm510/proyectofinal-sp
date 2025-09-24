@@ -1,49 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { obtenerRemitoPorId } from "./RemitoService";
-import { obtenerClientes } from "../clientes/ClienteService";
-import { obtenerProductos } from "../productos/ProductoService";
-import { obtenerPedidos } from "../pedidos/PedidoService";
 
 const RemitoDetalle = () => {
   const { id } = useParams(); // ID del remito en la URL
   const [remito, setRemito] = useState(null);
-  const [cliente, setCliente] = useState(null);
-  const [productos, setProductos] = useState([]);
-  const [pedido, setPedido] = useState(null);
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        // ✅ Obtener el remito por ID
         const r = await obtenerRemitoPorId(id);
         setRemito(r);
-
-        // ✅ Obtener pedidos (ya devuelve array, no snapshot)
-        const pedidosList = await obtenerPedidos();
-        const pedidoEncontrado = pedidosList.find((p) => p.id === r.pedidoId);
-        setPedido(pedidoEncontrado);
-
-        // ✅ Obtener cliente del pedido
-        if (pedidoEncontrado?.clienteId) {
-          const clientesSnap = await obtenerClientes();
-          const clientesList = clientesSnap.docs.map((d) => ({
-            id: d.id,
-            ...d.data(),
-          }));
-          const clienteEncontrado = clientesList.find(
-            (c) => c.id === pedidoEncontrado.clienteId
-          );
-          setCliente(clienteEncontrado);
-        }
-
-        // ✅ Obtener productos
-        const productosSnap = await obtenerProductos();
-        const productosList = productosSnap.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setProductos(productosList);
       } catch (error) {
         console.error("Error cargando remito:", error);
       }
@@ -52,13 +19,25 @@ const RemitoDetalle = () => {
     cargarDatos();
   }, [id]);
 
-  const getNombreProducto = (productoId) => {
-    const prod = productos.find((p) => p.id === productoId);
-    return prod ? prod.nombre : "Producto desconocido";
-  };
-
   const imprimir = () => {
     window.print();
+  };
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return "—";
+
+    // Si ya viene como string tipo DD/MM/YYYY, lo mostramos así
+    if (typeof fecha === "string" && fecha.includes("/")) {
+      return fecha;
+    }
+
+    // Si es formato ISO válido
+    const fechaObj = new Date(fecha);
+    if (!isNaN(fechaObj.getTime())) {
+      return fechaObj.toLocaleDateString();
+    }
+
+    return "—";
   };
 
   if (!remito) {
@@ -66,21 +45,18 @@ const RemitoDetalle = () => {
   }
 
   return (
-    <div className="container">
-      <h2>Remito N° {remito.numeroRemito}</h2>
+    <div className="container card p-4 mt-3">
+      <h2>Remito N° {remito.numeroRemito || "-"}</h2>
+      <hr style={{ border: "2px solid orange", width: "120px" }} />
 
       <p>
-        <strong>Cliente:</strong>{" "}
-        {cliente ? cliente.nombre : "Cliente no encontrado"}
+        <strong>Cliente:</strong> {remito.clienteNombre || "—"}
       </p>
       <p>
-        <strong>CUIT / DNI:</strong> {cliente ? cliente.cuit_dni : "—"}
+        <strong>CUIT / DNI:</strong> {remito.clienteCuit || "—"}
       </p>
       <p>
-        <strong>Fecha:</strong>{" "}
-        {remito.fechaRemito
-          ? new Date(remito.fechaRemito).toLocaleDateString()
-          : "-"}
+        <strong>Fecha:</strong> {formatearFecha(remito.fechaRemito)}
       </p>
       <p>
         <strong>Observaciones:</strong> {remito.observaciones || "—"}
@@ -90,8 +66,8 @@ const RemitoDetalle = () => {
       </p>
 
       <h3>Productos</h3>
-      {pedido && pedido.productos ? (
-        <table>
+      {remito.productos && remito.productos.length > 0 ? (
+        <table className="table table-striped mt-2">
           <thead>
             <tr>
               <th>Producto</th>
@@ -99,10 +75,10 @@ const RemitoDetalle = () => {
             </tr>
           </thead>
           <tbody>
-            {pedido.productos.map((prod, idx) => (
+            {remito.productos.map((p, idx) => (
               <tr key={idx}>
-                <td>{getNombreProducto(prod.productoId)}</td>
-                <td>{prod.cantidad}</td>
+                <td>{p.productoNombre || "—"}</td>
+                <td>{p.cantidad}</td>
               </tr>
             ))}
           </tbody>
@@ -111,7 +87,9 @@ const RemitoDetalle = () => {
         <p>No se encontraron productos para este remito.</p>
       )}
 
-      <button onClick={imprimir}>Imprimir</button>
+      <button className="btn btn-primary mt-3" onClick={imprimir}>
+        Imprimir
+      </button>
     </div>
   );
 };

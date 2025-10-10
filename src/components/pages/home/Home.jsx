@@ -36,15 +36,14 @@ const Home = () => {
       <section className="about">
         <h2>Sobre TecnoCut</h2>
         <p>
-          En <strong>TecnoCut</strong> nos especializamos en brindar soluciones
-          digitales para empresas que buscan optimizar su gestión de remitos,
-          productos y clientes. Nuestra plataforma fue desarrollada con foco en
-          la simplicidad, la velocidad y la eficiencia operativa.
+          En <strong>TecnoCut</strong> nos especializamos en la Creación de
+          piezas a medida o reparación de distintos tipos de piezas. Contamos
+          con una cartera de clientes de la rama metalúrgica y del agro.
         </p>
         <p>
-          Nuestro compromiso es ayudarte a ahorrar tiempo y reducir errores,
-          ofreciendo un sistema intuitivo, confiable y pensado para acompañar tu
-          crecimiento.
+          Nuestro compromiso es brindarte el mejor servicio para ayudarte a
+          ahorrar tiempo y reducir errores, ofreciendo productos de primera
+          calidad, confiables y pensados para acompañar tu crecimiento.
         </p>
       </section>
     </div>

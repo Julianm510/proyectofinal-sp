@@ -119,3 +119,13 @@
   margin: 0.8rem auto;
   line-height: 1.6;
 }
+
+.feature-card a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.feature-card a:hover h2 {
+  color: #007bff;
+  transition: color 0.2s ease-in-out;
+}

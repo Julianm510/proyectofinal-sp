@@ -67,6 +67,7 @@
   flex-wrap: wrap;
   gap: 2rem;
   justify-content: center;
+  text-decoration: none;
 }
 
 .feature-card {
@@ -77,6 +78,7 @@
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
 }
 
 .feature-card:hover {
@@ -88,6 +90,7 @@
   color: #0a3d62;
   margin-bottom: 0.8rem;
   font-size: 1.4rem;
+  text-decoration: none;
 }
 
 .feature-card p {

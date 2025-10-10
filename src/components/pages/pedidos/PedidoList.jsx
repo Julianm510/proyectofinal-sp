@@ -1,5 +1,5 @@
-// src/components/pedidos/PedidoList.jsx
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import {
   crearPedido,
   obtenerPedidos,
@@ -40,12 +40,39 @@ const PedidoList = () => {
     await actualizarPedido(id, pedido);
     await cargarDatos();
     setPedidoEditar(null);
+
+    // ✅ Alerta visual de actualización exitosa
+    Swal.fire({
+      title: "Pedido actualizado",
+      text: "Los datos del pedido se guardaron correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   };
 
   const eliminar = async (id) => {
-    if (window.confirm("¿Seguro que deseas eliminar este pedido?")) {
+    const resultado = await Swal.fire({
+      title: "¿Eliminar pedido?",
+      text: "Esta acción eliminará el pedido de forma permanente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (resultado.isConfirmed) {
       await eliminarPedido(id);
       await cargarDatos();
+      Swal.fire({
+        title: "Pedido eliminado",
+        text: "El pedido se eliminó correctamente.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     }
   };
 

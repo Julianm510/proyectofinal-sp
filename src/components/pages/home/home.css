@@ -129,3 +129,9 @@
   color: #007bff;
   transition: color 0.2s ease-in-out;
 }
+
+.feature-card:hover {
+  transform: translateY(-5px); /* efecto flotante */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background-color: #f8f9fa; /* tono claro al pasar el mouse */
+}

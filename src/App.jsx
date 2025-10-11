@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
+
 import "./app.css";
 
 import Clientes from "./components/pages/clientes/Clientes";
@@ -35,7 +36,7 @@ function App() {
           <Route path="/remitos/:id" element={<RemitoPrint />} /> */}
         </Routes>
       </div>
-      {/* <Footer /> */}
+      <Footer />
       <ScrollToTopButton />
     </BrowserRouter>
   );

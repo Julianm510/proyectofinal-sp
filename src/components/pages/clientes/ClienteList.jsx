@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import {
   crearCliente,
   obtenerClientes,
@@ -6,7 +7,6 @@ import {
   eliminarCliente,
 } from "./ClienteService";
 import ClienteForm from "./ClienteForm";
-import Swal from "sweetalert2";
 
 const ClienteList = () => {
   const [clientes, setClientes] = useState([]);
@@ -25,16 +25,36 @@ const ClienteList = () => {
     setClientesFiltrados(lista);
   };
 
+  // ✅ Al crear cliente
   const agregarCliente = async (cliente) => {
     await crearCliente(cliente);
     await cargarClientes();
+
+    Swal.fire({
+      title: "Cliente agregado",
+      text: "El cliente se creó correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   };
 
+  // ✅ Al editar cliente
   const actualizarClienteFn = async (id, cliente) => {
     await actualizarCliente(id, cliente);
     await cargarClientes();
     setClienteEditar(null);
+
+    Swal.fire({
+      title: "Cliente actualizado",
+      text: "Los datos del cliente se guardaron correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   };
+
+  // ✅ Confirmación antes de eliminar cliente
   const eliminarClienteFn = async (id) => {
     const resultado = await Swal.fire({
       title: "¿Eliminar cliente?",
@@ -50,6 +70,7 @@ const ClienteList = () => {
     if (resultado.isConfirmed) {
       await eliminarCliente(id);
       await cargarClientes();
+
       Swal.fire({
         title: "Cliente eliminado",
         text: "El cliente se eliminó correctamente.",
@@ -60,7 +81,6 @@ const ClienteList = () => {
     }
   };
 
-  // 🔍 Función para filtrar clientes
   const handleBuscar = (valor) => {
     setBusqueda(valor);
     if (valor.trim() === "") {
@@ -80,7 +100,6 @@ const ClienteList = () => {
     <div className="container">
       <h2>Gestión de Clientes</h2>
 
-      {/* 🔸 FORMULARIO DE CLIENTES */}
       <ClienteForm
         agregarCliente={agregarCliente}
         clienteEditar={clienteEditar}
@@ -88,18 +107,10 @@ const ClienteList = () => {
         cancelarEdicion={() => setClienteEditar(null)}
       />
 
-      {/* 🔸 BARRA DE BÚSQUEDA */}
-      <div
-        style={{
-          marginTop: "20px",
-          marginBottom: "20px",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
+      <div className="my-3 text-center">
         <input
           type="text"
-          placeholder="Buscar cliente por nombre, CUIT o localidad..."
+          placeholder="Buscar cliente..."
           value={busqueda}
           onChange={(e) => handleBuscar(e.target.value)}
           style={{
@@ -109,12 +120,10 @@ const ClienteList = () => {
             border: "1px solid #ccc",
             outline: "none",
             fontSize: "15px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         />
       </div>
 
-      {/* 🔸 TABLA DE CLIENTES */}
       <table className="table table-striped mt-3">
         <thead>
           <tr>
@@ -150,7 +159,7 @@ const ClienteList = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="6" style={{ textAlign: "center", color: "gray" }}>
+              <td colSpan="6" style={{ textAlign: "center", color: "#777" }}>
                 No se encontraron clientes.
               </td>
             </tr>

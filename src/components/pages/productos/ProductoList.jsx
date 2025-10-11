@@ -1,5 +1,5 @@
-// src/components/productos/ProductoList.jsx
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import {
   crearProducto,
   obtenerProductos,
@@ -12,55 +12,80 @@ const ProductoList = () => {
   const [productos, setProductos] = useState([]);
   const [productoEditar, setProductoEditar] = useState(null);
   const [busqueda, setBusqueda] = useState("");
-  const [productosFiltrados, setProductosFiltrados] = useState([]);
 
   const cargarProductos = async () => {
     const snapshot = await obtenerProductos();
-    const lista = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setProductos(lista);
-    setProductosFiltrados(lista);
+    setProductos(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
   };
 
   useEffect(() => {
     cargarProductos();
   }, []);
 
+  // ✅ Al crear producto
   const agregarProducto = async (producto) => {
     await crearProducto(producto);
     cargarProductos();
+
+    Swal.fire({
+      title: "Producto agregado",
+      text: "El producto se creó correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   };
 
+  // ✅ Al editar producto
   const guardarActualizacion = async (id, producto) => {
     await actualizarProducto(id, producto);
     setProductoEditar(null);
     cargarProductos();
+
+    Swal.fire({
+      title: "Producto actualizado",
+      text: "El producto se actualizó correctamente.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   };
 
+  // ✅ Confirmación antes de eliminar
   const borrarProducto = async (id) => {
-    if (window.confirm("¿Seguro que deseas eliminar este producto?")) {
+    const resultado = await Swal.fire({
+      title: "¿Eliminar producto?",
+      text: "Esta acción eliminará el producto de forma permanente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (resultado.isConfirmed) {
       await eliminarProducto(id);
       cargarProductos();
+
+      Swal.fire({
+        title: "Producto eliminado",
+        text: "El producto se eliminó correctamente.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
     }
   };
 
-  // 🔍 Filtro de búsqueda
-  const handleBuscar = (valor) => {
-    setBusqueda(valor);
-    if (valor.trim() === "") {
-      setProductosFiltrados(productos);
-    } else {
-      const filtrados = productos.filter((p) =>
-        p.nombre.toLowerCase().includes(valor.toLowerCase())
-      );
-      setProductosFiltrados(filtrados);
-    }
-  };
+  const productosFiltrados = productos.filter((p) =>
+    p.nombre?.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   return (
     <div className="container">
       <h2>Gestión de Productos</h2>
 
-      {/* 🔸 FORMULARIO DE PRODUCTOS */}
       <ProductoForm
         agregarProducto={agregarProducto}
         productoEditar={productoEditar}
@@ -68,20 +93,12 @@ const ProductoList = () => {
         cancelarEdicion={() => setProductoEditar(null)}
       />
 
-      {/* 🔸 BARRA DE BÚSQUEDA */}
-      <div
-        style={{
-          marginTop: "20px",
-          marginBottom: "20px",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
+      <div className="my-3 text-center">
         <input
           type="text"
-          placeholder="Ingrese nombre del producto..."
+          placeholder="Buscar producto..."
           value={busqueda}
-          onChange={(e) => handleBuscar(e.target.value)}
+          onChange={(e) => setBusqueda(e.target.value)}
           style={{
             width: "60%",
             padding: "8px 12px",
@@ -89,13 +106,11 @@ const ProductoList = () => {
             border: "1px solid #ccc",
             outline: "none",
             fontSize: "15px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         />
       </div>
 
-      {/* 🔸 TABLA DE PRODUCTOS */}
-      <table>
+      <table className="table table-striped mt-3">
         <thead>
           <tr>
             <th>Nombre</th>
@@ -110,7 +125,7 @@ const ProductoList = () => {
               <tr key={p.id}>
                 <td>{p.nombre}</td>
                 <td>{p.descripcion}</td>
-                <td>${p.precioUnitario.toFixed(2)}</td>
+                <td>${p.precioUnitario?.toFixed(2)}</td>
                 <td>
                   <button className="edit" onClick={() => setProductoEditar(p)}>
                     Editar
@@ -126,7 +141,7 @@ const ProductoList = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="4" style={{ textAlign: "center", color: "gray" }}>
+              <td colSpan="4" style={{ textAlign: "center", color: "#777" }}>
                 No se encontraron productos.
               </td>
             </tr>

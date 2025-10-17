@@ -36,7 +36,7 @@ function App() {
           <Route path="/remitos/:id" element={<RemitoPrint />} /> */}
         </Routes>
       </div>
-      <Footer />
+      {/* <Footer /> */}
       <ScrollToTopButton />
     </BrowserRouter>
   );

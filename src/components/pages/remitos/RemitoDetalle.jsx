@@ -59,7 +59,7 @@ const RemitoDetalle = () => {
         <strong>Fecha:</strong> {formatearFecha(remito.fechaRemito)}
       </p>
       <p>
-        <strong>Observaciones:</strong> {remito.observaciones || "—"}
+        <strong>Observaciones:</strong> {remito.observacion || "—"}
       </p>
       <p>
         <strong>Transportista:</strong> {remito.transportista || "No asignado"}

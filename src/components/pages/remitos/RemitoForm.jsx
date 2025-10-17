@@ -39,7 +39,7 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
           : new Date().toISOString(),
         estado: "pendiente",
         transportista: pedido.transportista || "",
-        observaciones: pedido.observaciones || "",
+        observacion: pedido.observacion || "",
       });
     }
   }, [pedido, cliente, productos]);
@@ -58,7 +58,7 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
       fechaRemito: "",
       estado: "pendiente",
       transportista: "",
-      observaciones: "",
+      observacion: "",
     });
   };
 
@@ -123,10 +123,8 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
           <label>Observaciones: </label>
           <input
             type="text"
-            value={form.observaciones}
-            onChange={(e) =>
-              setForm({ ...form, observaciones: e.target.value })
-            }
+            value={form.observacion}
+            onChange={(e) => setForm({ ...form, observacion: e.target.value })}
             className="form-control"
           />
         </div>

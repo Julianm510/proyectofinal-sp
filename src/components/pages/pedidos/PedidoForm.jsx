@@ -1,104 +1,185 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import { crearPedido, actualizarPedido } from "./PedidoService";
 import { obtenerClientes } from "../clientes/ClienteService";
 import { obtenerProductos } from "../productos/ProductoService";
 
-const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
+const PedidoForm = ({ onSave, pedidoEditar, cancelarEdicion }) => {
   const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState([]);
+
   const [form, setForm] = useState({
     numeroPedido: "",
     clienteId: "",
     productos: [],
     estado: "pendiente",
     transportista: "",
-    observaciones: "",
+    observacion: "",
   });
 
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
   const [cantidad, setCantidad] = useState("");
 
   useEffect(() => {
-    obtenerClientes().then((snap) =>
-      setClientes(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-    obtenerProductos().then((snap) =>
-      setProductos(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-
+    cargarDatos();
     if (pedidoEditar) setForm(pedidoEditar);
   }, [pedidoEditar]);
 
-  const agregarProductoAlPedido = () => {
-    const producto = productos.find((p) => p.id === productoSeleccionado);
-    if (producto && cantidad > 0) {
-      setForm((prev) => ({
-        ...prev,
-        productos: [
-          ...prev.productos,
-          {
-            productoId: producto.id,
-            cantidad: parseInt(cantidad),
-            precioUnitario: producto.precioUnitario,
-          },
-        ],
-      }));
-      setProductoSeleccionado("");
-      setCantidad("");
-    }
+  const cargarDatos = async () => {
+    const snapClientes = await obtenerClientes();
+    const snapProductos = await obtenerProductos();
+
+    const clientesList = snapClientes.docs
+      ? snapClientes.docs.map((d) => ({ id: d.id, ...d.data() }))
+      : snapClientes;
+    const productosList = snapProductos.docs
+      ? snapProductos.docs.map((d) => ({ id: d.id, ...d.data() }))
+      : snapProductos;
+
+    setClientes(clientesList);
+    setProductos(productosList);
   };
 
-  const eliminarProductoDelPedido = (index) => {
+  // ➕ Agregar producto al pedido
+  const agregarProducto = () => {
+    const producto = productos.find((p) => p.id === productoSeleccionado);
+    if (!producto || !cantidad || cantidad <= 0) return;
+
+    setForm((prev) => ({
+      ...prev,
+      productos: [
+        ...prev.productos,
+        {
+          productoId: producto.id,
+          nombre: producto.nombre,
+          cantidad: parseInt(cantidad),
+          precioUnitario: producto.precioUnitario,
+        },
+      ],
+    }));
+    setProductoSeleccionado("");
+    setCantidad("");
+  };
+
+  // ❌ Eliminar producto del pedido
+  const eliminarProducto = (index) => {
     setForm((prev) => ({
       ...prev,
       productos: prev.productos.filter((_, i) => i !== index),
     }));
   };
 
-  const actualizarCantidadProducto = (index, nuevaCantidad) => {
+  // 🧮 Actualizar cantidad
+  const actualizarCantidad = (index, nuevaCantidad) => {
+    if (nuevaCantidad <= 0) return;
     setForm((prev) => {
-      const nuevosProductos = [...prev.productos];
-      if (nuevaCantidad > 0) {
-        nuevosProductos[index].cantidad = parseInt(nuevaCantidad);
-      }
-      return { ...prev, productos: nuevosProductos };
+      const nuevos = [...prev.productos];
+      nuevos[index].cantidad = parseInt(nuevaCantidad);
+      return { ...prev, productos: nuevos };
     });
   };
 
-  const handleSubmit = (e) => {
+  // 💾 Guardar o editar pedido
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.numeroPedido || !form.clienteId || form.productos.length === 0) {
+      Swal.fire({
+        title: "Campos incompletos",
+        text: "Debe ingresar un número de pedido, cliente y al menos un producto.",
+        icon: "warning",
+      });
+      return;
+    }
+
     const hoy = new Date();
-    const fechaFormateada = `${hoy.getDate()}/${
-      hoy.getMonth() + 1
-    }/${hoy.getFullYear()}`;
+    const fechaISO = hoy.toISOString();
 
-    const nuevo = { ...form, fechaPedido: fechaFormateada };
-    if (pedidoEditar) actualizar(pedidoEditar.id, nuevo);
-    else agregar(nuevo);
+    const pedidoData = {
+      ...form,
+      fecha: fechaISO,
+    };
 
-    setForm({
-      numeroPedido: "",
-      clienteId: "",
-      productos: [],
-      estado: "pendiente",
-      transportista: "",
-      observaciones: "",
-    });
+    try {
+      if (pedidoEditar) {
+        const resultado = await Swal.fire({
+          title: "¿Deseas actualizar este pedido?",
+          text: "Los cambios serán guardados permanentemente.",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#f39c12",
+          cancelButtonColor: "#6c757d",
+          confirmButtonText: "Sí, actualizar",
+          cancelButtonText: "Cancelar",
+        });
+
+        if (resultado.isConfirmed) {
+          await actualizarPedido(pedidoEditar.id, pedidoData);
+          Swal.fire({
+            title: "Pedido actualizado",
+            text: "El pedido se actualizó correctamente.",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          if (onSave) onSave();
+          if (cancelarEdicion) cancelarEdicion();
+        }
+      } else {
+        await crearPedido(pedidoData);
+        Swal.fire({
+          title: "Pedido creado",
+          text: "El pedido se registró correctamente.",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        if (onSave) onSave();
+      }
+
+      // Reset del formulario
+      setForm({
+        numeroPedido: "",
+        clienteId: "",
+        productos: [],
+        estado: "pendiente",
+        transportista: "",
+        observacion: "",
+      });
+    } catch (error) {
+      console.error("Error al guardar pedido:", error);
+      Swal.fire("Error", "No se pudo guardar el pedido.", "error");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        background: "#f9f9f9",
+        padding: "15px",
+        borderRadius: "10px",
+      }}
+    >
+      <h4>{pedidoEditar ? "Editar Pedido" : "Nuevo Pedido"}</h4>
+
+      {/* Número de pedido */}
       <input
         type="text"
-        name="numeroPedido"
         placeholder="N° Pedido"
         value={form.numeroPedido}
         onChange={(e) => setForm({ ...form, numeroPedido: e.target.value })}
+        required
       />
 
+      {/* Cliente */}
       <select
-        name="clienteId"
         value={form.clienteId}
         onChange={(e) => setForm({ ...form, clienteId: e.target.value })}
+        required
       >
         <option value="">Seleccione un cliente</option>
         {clientes.map((c) => (
@@ -116,16 +197,16 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
         onChange={(e) => setForm({ ...form, transportista: e.target.value })}
       />
 
-      {/* Observaciones */}
+      {/* Observación */}
       <input
         type="text"
-        placeholder="Observaciones"
-        value={form.observaciones}
-        onChange={(e) => setForm({ ...form, observaciones: e.target.value })}
+        placeholder="Observación"
+        value={form.observacion}
+        onChange={(e) => setForm({ ...form, observacion: e.target.value })}
       />
 
-      {/* Selección de productos */}
-      <div>
+      {/* Productos */}
+      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
         <select
           value={productoSeleccionado}
           onChange={(e) => setProductoSeleccionado(e.target.value)}
@@ -137,26 +218,29 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
             </option>
           ))}
         </select>
+
         <input
           type="number"
           min="1"
           placeholder="Cantidad"
           value={cantidad}
           onChange={(e) => setCantidad(e.target.value)}
+          style={{ width: "80px" }}
         />
+
         <button
           type="button"
+          onClick={agregarProducto}
           style={{
             backgroundColor: "orange",
             color: "white",
             border: "none",
-            padding: "5px 10px",
-            marginLeft: "5px",
+            padding: "6px 12px",
             cursor: "pointer",
+            borderRadius: "5px",
           }}
-          onClick={agregarProductoAlPedido}
         >
-          Agregar Producto
+          Agregar
         </button>
       </div>
 
@@ -167,89 +251,88 @@ const PedidoForm = ({ agregar, pedidoEditar, actualizar, cancelar }) => {
             width: "100%",
             marginTop: "10px",
             borderCollapse: "collapse",
+            background: "white",
           }}
         >
           <thead>
             <tr style={{ backgroundColor: "#f2f2f2" }}>
               <th>Producto</th>
               <th>Cantidad</th>
-              <th>Precio Unitario</th>
+              <th>Precio</th>
               <th>Subtotal</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {form.productos.map((p, index) => {
-              const producto = productos.find(
-                (prod) => prod.id === p.productoId
-              );
-              return (
-                <tr key={index}>
-                  <td>{producto ? producto.nombre : "Producto eliminado"}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min="1"
-                      value={p.cantidad}
-                      onChange={(e) =>
-                        actualizarCantidadProducto(index, e.target.value)
-                      }
-                      style={{ width: "60px" }}
-                    />
-                  </td>
-                  <td>${p.precioUnitario}</td>
-                  <td>${p.precioUnitario * p.cantidad}</td>
-                  <td>
-                    <button
-                      type="button"
-                      style={{
-                        backgroundColor: "orange",
-                        color: "white",
-                        border: "none",
-                        padding: "5px 10px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => eliminarProductoDelPedido(index)}
-                    >
-                      Quitar
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
+            {form.productos.map((p, index) => (
+              <tr key={index}>
+                <td>{p.nombre}</td>
+                <td>
+                  <input
+                    type="number"
+                    min="1"
+                    value={p.cantidad}
+                    onChange={(e) => actualizarCantidad(index, e.target.value)}
+                    style={{ width: "60px" }}
+                  />
+                </td>
+                <td>${p.precioUnitario}</td>
+                <td>${p.precioUnitario * p.cantidad}</td>
+                <td>
+                  <button
+                    type="button"
+                    onClick={() => eliminarProducto(index)}
+                    style={{
+                      backgroundColor: "red",
+                      color: "white",
+                      border: "none",
+                      padding: "5px 10px",
+                      cursor: "pointer",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    Quitar
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
 
-      <button
-        type="submit"
-        style={{
-          backgroundColor: "orange",
-          color: "white",
-          border: "none",
-          padding: "8px 15px",
-          marginTop: "10px",
-          cursor: "pointer",
-        }}
-      >
-        {pedidoEditar ? "Actualizar" : "Guardar Pedido"}
-      </button>
-      {pedidoEditar && (
+      {/* Botones */}
+      <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
         <button
-          type="button"
-          onClick={cancelar}
+          type="submit"
           style={{
-            backgroundColor: "gray",
+            backgroundColor: "orange",
             color: "white",
             border: "none",
-            padding: "8px 15px",
-            marginLeft: "10px",
+            padding: "10px 15px",
+            borderRadius: "5px",
             cursor: "pointer",
           }}
         >
-          Cancelar
+          {pedidoEditar ? "Actualizar Pedido" : "Guardar Pedido"}
         </button>
-      )}
+
+        {pedidoEditar && (
+          <button
+            type="button"
+            onClick={cancelarEdicion}
+            style={{
+              backgroundColor: "gray",
+              color: "white",
+              border: "none",
+              padding: "10px 15px",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 };

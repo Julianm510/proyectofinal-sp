@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { db } from "../../../FireBaseConfig";
 import { crearRemito } from "./RemitoService";
 
 const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
@@ -12,65 +14,100 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
     fechaRemito: "",
     estado: "pendiente",
     transportista: "",
-    observaciones: "",
+    observacion: "",
   });
 
-  useEffect(() => {
-    if (pedido && cliente) {
-      setForm({
-        numeroRemito: `R-${Date.now()}`, // número de remito autogenerado
-        numeroPedido: pedido.numeroPedido,
-        clienteId: cliente.id,
-        clienteNombre: cliente.nombre,
-        clienteCuit: cliente.cuit_dni || "",
-        productos: pedido.productos.map((p) => {
-          const prod = productos.find((pr) => pr.id === p.productoId);
-          return {
-            productoId: p.productoId,
-            productoNombre: prod ? prod.nombre : "Producto eliminado",
-            cantidad: p.cantidad,
-            precioUnitario: p.precioUnitario,
-          };
-        }),
-        // ✅ Corregido: si el pedido ya tiene fecha la usamos como string,
-        // sino usamos la fecha actual
-        fechaRemito: pedido.fechaPedido
-          ? pedido.fechaPedido
-          : new Date().toISOString(),
-        estado: "pendiente",
-        transportista: pedido.transportista || "",
-        observacion: pedido.observacion || "",
-      });
+  // 🔹 Generar número de remito con formato ARCA (0001-00000001)
+  const generarNumeroRemito = async () => {
+    try {
+      const remitosRef = collection(db, "remitos");
+      const q = query(remitosRef, orderBy("numeroRemito", "desc"), limit(1));
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+        const ultimo = snapshot.docs[0].data().numeroRemito;
+        const ultimoNumero = parseInt(ultimo.split("-")[1], 10);
+        const nuevoNumero = (ultimoNumero + 1).toString().padStart(8, "0");
+        return `0001-${nuevoNumero}`;
+      } else {
+        return "0001-00000001";
+      }
+    } catch (error) {
+      console.error("Error generando número de remito:", error);
+      return "0001-00000001";
     }
+  };
+
+  // 🔹 Inicializar formulario cuando hay pedido + cliente
+  useEffect(() => {
+    const inicializar = async () => {
+      if (pedido && cliente) {
+        const numeroRemitoGenerado = await generarNumeroRemito();
+
+        // ✅ Aseguramos formato correcto de fecha (dd/mm/yyyy)
+        const hoy = new Date();
+        const fechaFormateada = `${hoy
+          .getDate()
+          .toString()
+          .padStart(2, "0")}/${(hoy.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}/${hoy.getFullYear()}`;
+
+        setForm({
+          numeroRemito: numeroRemitoGenerado,
+          numeroPedido: pedido.numeroPedido || "",
+          clienteId: cliente.id,
+          clienteNombre: cliente.nombre,
+          clienteCuit: cliente.cuit_dni || "",
+          productos: pedido.productos.map((p) => {
+            const prod = productos.find((pr) => pr.id === p.productoId);
+            return {
+              productoId: p.productoId,
+              productoNombre: prod ? prod.nombre : "Producto eliminado",
+              cantidad: p.cantidad,
+              precioUnitario: p.precioUnitario,
+            };
+          }),
+          fechaRemito: pedido.fechaPedido || fechaFormateada,
+          estado: "pendiente",
+          transportista: pedido.transportista || "",
+          observacion: pedido.observacion || "",
+        });
+      }
+    };
+    inicializar();
   }, [pedido, cliente, productos]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await crearRemito(form);
-    onSave();
-    setForm({
-      numeroRemito: "",
-      numeroPedido: "",
-      clienteId: "",
-      clienteNombre: "",
-      clienteCuit: "",
-      productos: [],
-      fechaRemito: "",
-      estado: "pendiente",
-      transportista: "",
-      observacion: "",
-    });
+    try {
+      await crearRemito(form);
+      onSave();
+
+      setForm({
+        numeroRemito: "",
+        numeroPedido: "",
+        clienteId: "",
+        clienteNombre: "",
+        clienteCuit: "",
+        productos: [],
+        fechaRemito: "",
+        estado: "pendiente",
+        transportista: "",
+        observacion: "",
+      });
+    } catch (error) {
+      console.error("Error al guardar el remito:", error);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="card p-3 mt-3">
-      <div>
-        <h4>Nuevo Remito: </h4>
-      </div>
-      <div>
-        {" "}
-        <div className="mb-2">
-          <label>N° Remito: </label>
+      <h4>Nuevo Remito</h4>
+
+      <div className="row">
+        <div className="col-md-4 mb-2">
+          <label>N° Remito:</label>
           <input
             type="text"
             value={form.numeroRemito}
@@ -78,8 +115,9 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
             className="form-control"
           />
         </div>
-        <div className="mb-2">
-          <label>N° Pedido: </label>
+
+        <div className="col-md-4 mb-2">
+          <label>N° Pedido:</label>
           <input
             type="text"
             value={form.numeroPedido}
@@ -87,8 +125,21 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
             className="form-control"
           />
         </div>
-        <div className="mb-2">
-          <label>Cliente: </label>
+
+        <div className="col-md-4 mb-2">
+          <label>Fecha:</label>
+          <input
+            type="text"
+            value={form.fechaRemito}
+            readOnly
+            className="form-control"
+          />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-6 mb-2">
+          <label>Cliente:</label>
           <input
             type="text"
             value={form.clienteNombre}
@@ -96,11 +147,9 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
             className="form-control"
           />
         </div>
-      </div>
-      <div>
-        {" "}
-        <div className="mb-2">
-          <label>CUIT / DNI: </label>
+
+        <div className="col-md-6 mb-2">
+          <label>CUIT / DNI:</label>
           <input
             type="text"
             value={form.clienteCuit}
@@ -108,8 +157,11 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
             className="form-control"
           />
         </div>
-        <div className="mb-2">
-          <label>Transportista: </label>
+      </div>
+
+      <div className="row">
+        <div className="col-md-6 mb-2">
+          <label>Transportista:</label>
           <input
             type="text"
             value={form.transportista}
@@ -119,8 +171,9 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
             className="form-control"
           />
         </div>
-        <div className="mb-2">
-          <label>Observaciones: </label>
+
+        <div className="col-md-6 mb-2">
+          <label>Observaciones:</label>
           <input
             type="text"
             value={form.observacion}
@@ -147,7 +200,7 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
                 <td>{p.productoNombre}</td>
                 <td>{p.cantidad}</td>
                 <td>${p.precioUnitario}</td>
-                <td>${p.cantidad * p.precioUnitario}</td>
+                <td>${(p.cantidad * p.precioUnitario).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

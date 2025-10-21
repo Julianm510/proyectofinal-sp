@@ -67,6 +67,30 @@ const RemitoList = () => {
     setMostrarFormulario(false);
   };
 
+  // ✅ Función para formatear cualquier tipo de fecha correctamente
+  const formatearFecha = (fecha) => {
+    if (!fecha) return "—";
+
+    // Si viene como objeto de Firebase Timestamp
+    if (fecha.seconds) {
+      const date = new Date(fecha.seconds * 1000);
+      return date.toLocaleDateString("es-AR");
+    }
+
+    // Si viene en formato dd/mm/yyyy (ya está bien)
+    if (typeof fecha === "string" && fecha.includes("/")) {
+      return fecha;
+    }
+
+    // Si viene como string ISO (2025-10-15T00:00:00Z)
+    const parsed = new Date(fecha);
+    if (!isNaN(parsed)) {
+      return parsed.toLocaleDateString("es-AR");
+    }
+
+    return "—";
+  };
+
   // ✅ Filtro combinado (texto + fecha)
   const handleBuscar = (valor, fecha) => {
     const texto = valor !== undefined ? valor : busqueda;
@@ -76,10 +100,7 @@ const RemitoList = () => {
     setFechaFiltro(fechaSeleccionada);
 
     const filtrados = remitos.filter((r) => {
-      const fechaRemito = r.fechaRemito
-        ? new Date(r.fechaRemito).toLocaleDateString("es-AR")
-        : "";
-
+      const fechaRemito = formatearFecha(r.fechaRemito);
       const coincideTexto =
         texto.trim() === "" ||
         r.numeroRemito?.toLowerCase().includes(texto.toLowerCase()) ||
@@ -90,8 +111,9 @@ const RemitoList = () => {
       const coincideFecha =
         !fechaSeleccionada ||
         (r.fechaRemito &&
-          new Date(r.fechaRemito).toISOString().slice(0, 10) ===
-            fechaSeleccionada);
+          new Date(formatearFecha(r.fechaRemito).split("/").reverse().join("-"))
+            .toISOString()
+            .slice(0, 10) === fechaSeleccionada);
 
       return coincideTexto && coincideFecha;
     });
@@ -206,11 +228,7 @@ const RemitoList = () => {
                     <td>{r.numeroRemito}</td>
                     <td>{r.numeroPedido}</td>
                     <td>{r.clienteNombre}</td>
-                    <td>
-                      {r.fechaRemito
-                        ? new Date(r.fechaRemito).toLocaleDateString("es-AR")
-                        : "—"}
-                    </td>
+                    <td>{formatearFecha(r.fechaRemito)}</td>
                     <td>
                       <ul style={{ margin: 0, paddingLeft: "20px" }}>
                         {r.productos?.map((p, i) => {

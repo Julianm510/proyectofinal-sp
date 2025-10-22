@@ -103,83 +103,80 @@ const RemitoForm = ({ pedido, cliente, onSave, productos }) => {
 
   return (
     <form onSubmit={handleSubmit} className="card p-3 mt-3">
-      <h4>Nuevo Remito</h4>
+      <div>
+        <h4>Nuevo Remito</h4>
+        <div className="row g-2">
+          <div className="col-md-4 mb-2">
+            <label>N° Remito: </label>
+            <input
+              type="text"
+              value={form.numeroRemito}
+              readOnly
+              className="form-control"
+            />
+          </div>
 
-      <div className="row">
-        <div className="col-md-4 mb-2">
-          <label>N° Remito:</label>
-          <input
-            type="text"
-            value={form.numeroRemito}
-            readOnly
-            className="form-control"
-          />
-        </div>
+          <div className="col-md-4 mb-2">
+            <label>N° Pedido: </label>
+            <input
+              type="text"
+              value={form.numeroPedido}
+              readOnly
+              className="form-control"
+            />
+          </div>
 
-        <div className="col-md-4 mb-2">
-          <label>N° Pedido:</label>
-          <input
-            type="text"
-            value={form.numeroPedido}
-            readOnly
-            className="form-control"
-          />
-        </div>
+          <div className="col-md-4 mb-2">
+            <label>Fecha: </label>
+            <input
+              type="text"
+              value={form.fechaRemito}
+              readOnly
+              className="form-control"
+            />
+          </div>
+          <div className="col-md-6 mb-2">
+            <label>Cliente: </label>
+            <input
+              type="text"
+              value={form.clienteNombre}
+              readOnly
+              className="form-control"
+            />
+          </div>
 
-        <div className="col-md-4 mb-2">
-          <label>Fecha:</label>
-          <input
-            type="text"
-            value={form.fechaRemito}
-            readOnly
-            className="form-control"
-          />
-        </div>
-      </div>
+          <div className="col-md-6 mb-2">
+            <label>CUIT / DNI: </label>
+            <input
+              type="text"
+              value={form.clienteCuit}
+              readOnly
+              className="form-control"
+            />
+          </div>
+          <div className="col-md-6 mb-2">
+            <label>Transportista: </label>
+            <input
+              type="text"
+              value={form.transportista}
+              onChange={(e) =>
+                setForm({ ...form, transportista: e.target.value })
+              }
+              className="form-control"
+            />
+          </div>
 
-      <div className="row">
-        <div className="col-md-6 mb-2">
-          <label>Cliente:</label>
-          <input
-            type="text"
-            value={form.clienteNombre}
-            readOnly
-            className="form-control"
-          />
-        </div>
-
-        <div className="col-md-6 mb-2">
-          <label>CUIT / DNI:</label>
-          <input
-            type="text"
-            value={form.clienteCuit}
-            readOnly
-            className="form-control"
-          />
-        </div>
-      </div>
-
-      <div className="row">
-        <div className="col-md-6 mb-2">
-          <label>Transportista:</label>
-          <input
-            type="text"
-            value={form.transportista}
-            onChange={(e) =>
-              setForm({ ...form, transportista: e.target.value })
-            }
-            className="form-control"
-          />
-        </div>
-
-        <div className="col-md-6 mb-2">
-          <label>Observaciones:</label>
-          <input
-            type="text"
-            value={form.observacion}
-            onChange={(e) => setForm({ ...form, observacion: e.target.value })}
-            className="form-control"
-          />
+          <div className="col-md-6 mb-2">
+            <label>Observaciones: </label>
+            <input
+              type="text"
+              value={form.observacion}
+              onChange={(e) =>
+                setForm({ ...form, observacion: e.target.value })
+              }
+              className="form-control"
+            />
+          </div>
         </div>
       </div>
 

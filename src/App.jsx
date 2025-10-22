@@ -23,8 +23,22 @@ function App() {
   return (
     <BrowserRouter>
       <Navbar />
-      <div style={{ padding: "1rem" }}>
-        <Routes>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          backgroundColor: "#f8f9fa",
+        }}
+      >
+        <Routes
+          style={{
+            flex: 1,
+            padding: "1.5rem",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Route path="/" element={<Home />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/productos" element={<Productos />} />
@@ -32,11 +46,11 @@ function App() {
           <Route path="/remitos" element={<Remitos />} />
           <Route path="/dashboard" element={<DashBoard />} />
           <Route path="/remitos/:id" element={<RemitoDetalle />} />
-          {/* 
+          {/*
           <Route path="/remitos/:id" element={<RemitoPrint />} /> */}
         </Routes>
       </div>
-      {/* <Footer /> */}
+      <Footer />
       <ScrollToTopButton />
     </BrowserRouter>
   );
